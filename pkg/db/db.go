@@ -68,3 +68,33 @@ func StoreProduct(ctx context.Context, db *sql.DB, product Product) error {
 	)
 	return err
 }
+
+func safeString(value interface{}) string {
+	if value != nil {
+		return value.(string)
+	}
+	return ""
+}
+
+/* product := db.Product{
+    ID:                 safeString(productData["id"]),
+    ProductName:        safeString(productData["product_name"]),
+    ProductNameEn:      safeString(productData["product_name_en"]),
+    ProductQuantity:    safeString(productData["product_quantity"]),
+    Quantity:           safeString(productData["quantity"]),
+    ServingQuantity:    safeString(productData["serving_quantity"]),
+    ServingSize:        safeString(productData["serving_size"]),
+    Ingredients:        safeString(productData["ingredients_text_en"]),
+    NutritionGradeFr:   safeString(productData["nutrition_grade_fr"]),
+    NutritionDataPer:   safeString(productData["nutrition_data_per"]),
+    Categories:         safeString(productData["categories"]),
+    CategoriesTags:     safeString(productData["categories_tags"]),
+    Brands:             safeString(productData["brands"]),
+    BrandsTags:         safeString(productData["brands_tags"]),
+    Traces:             safeString(productData["traces"]),
+    TracesTags:         safeString(productData["traces_tags"]),
+    Countries:          safeString(productData["countries"]),
+    CountriesTags:      safeString(productData["countries_tags"]),
+    PurchasePlacesTags: safeString(productData["purchase_places_tags"]),
+    StoresTags:         safeString(productData["stores_tags"]),
+}*/
