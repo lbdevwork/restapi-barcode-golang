@@ -1,0 +1,59 @@
+openapi: 3.0.0
+info:
+  title: Nutriscore and Carbon Footprint API
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080/v1
+paths:
+  /product/{barcode}:
+    get:
+      summary: Get product information by barcode
+      parameters:
+        - name: barcode
+          in: path
+          required: true
+          schema:
+            type: string
+            pattern: '^\d{12}$'
+          description: The product's 12-digit barcode (e.g., 737628064502)
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  barcode:
+                    type: string
+                    example: "737628064502"
+                  name:
+                    type: string
+                    example: "Example Product"
+                  nutriscore:
+                    type: string
+                    example: "A"
+                  carbon_footprint:
+                    type: number
+                    format: float
+                    example: 10.5
+        '400':
+          description: Invalid barcode
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Invalid barcode"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Error fetching product from Open Food Facts API"
