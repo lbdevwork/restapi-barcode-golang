@@ -14,8 +14,8 @@ paths:
           required: true
           schema:
             type: string
-            pattern: '^\d{12}$'
-          description: The product's 12-digit barcode (e.g., 737628064502)
+            pattern: '^\d{13}$'
+          description: The product's 13-digit barcode (e.g., 737628064502)
       responses:
         '200':
           description: Successful operation
@@ -26,7 +26,7 @@ paths:
                 properties:
                   barcode:
                     type: string
-                    example: "737628064502"
+                    example: "0737628064502"
                   name:
                     type: string
                     example: "Example Product"

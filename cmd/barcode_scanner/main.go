@@ -9,15 +9,16 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"regexp"
 	"strings"
 	"time"
+	"regexp"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/lbdevwork/restapi-barcode-golang/pkg/api"
 	"github.com/lbdevwork/restapi-barcode-golang/pkg/db"
+	"github.com/lbdevwork/restapi-barcode-golang/pkg/utils"
 )
 
 var database *sql.DB
@@ -48,10 +49,16 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	barcode := chi.URLParam(r, "barcode")
 	barcode = strings.TrimSuffix(barcode, ".json")
 
-	fmt.Printf("\n %v\n", barcode)
-
 	// Check if the barcode is valid
-	if barcode == "" || !is12DigitNumber(barcode) {
+	if barcode == "" {
+		handleError(w, http.StatusBadRequest, "Invalid barcode", nil)
+		return
+	}
+
+	// Format to 13 digits
+	barcode = utils.convertTo13DigitNumber(barcode)	
+
+	if (barcode == "error"){	
 		handleError(w, http.StatusBadRequest, "Invalid barcode", nil)
 		return
 	}
@@ -71,7 +78,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 			// Fetch the product from the Open Food Facts API
 			product, err = api.FetchProduct(ctx, barcode)
 			if err != nil {
-				handleError(w, http.StatusInternalServerError, "Error fetching product from Open Food Facts API", err)
+				handleError(w, http.StatusInternalServerError, fmt.Sprintf("Error fetching product from Open Food Facts API: %v", err), err)
 				return
 			}
 
@@ -111,19 +118,8 @@ func handleError(w http.ResponseWriter, statusCode int, message string, err erro
 	}
 }
 
-// Helper function to check if a string is a 12-digit number
-func is12DigitNumber(value string) bool {
 
-	// Create a regular expression to match 12-digit numbers
-	regex, err := regexp.Compile(`^\d{12}$`)
-	if err != nil {
-		fmt.Printf("Error creating regular expression: %v\n", err)
-		return false
-	}
 
-	// Check if the value matches the regular expression
-	return regex.MatchString(value)
-}
 
 func connectToDatabase() *sql.DB {
 	dsn := "root:@tcp(localhost:3306)/barcodes?parseTime=true" //os.Getenv("MYSQL_DSN")
