@@ -13,7 +13,7 @@ import (
 )
 
 func FetchProduct(ctx context.Context, barcode string) (db.Product, error) {
-	url := fmt.Sprintf("https://world.openfoodfacts.org/api/v2/search?code=%s&fields=code,product_name,ecoscore_grade,nutriscore_grade", barcode)
+	url := fmt.Sprintf("https://world.openfoodfacts.org/api/v2/search?code=%s&fields=code,product_name,ecoscore_grade,nutriscore_grade,nutriments", barcode)
 
 	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
 	if err != nil {
@@ -39,28 +39,40 @@ func FetchProduct(ctx context.Context, barcode string) (db.Product, error) {
 
 	products, ok := data["products"].([]interface{})
 	if !ok || len(products) == 0 {
-	    return db.Product{}, fmt.Errorf("unable to find the products key in the response data or products array is empty")
+		return db.Product{}, fmt.Errorf("unable to find the products key in the response data or products array is empty")
 	}
-    
+
 	productData := products[0].(map[string]interface{})
-    	product := db.Product{
-        	ID:              productData["code"].(string),
+	product := db.Product{
+		ID:              productData["code"].(string),
 		ProductName:     utils.SafeString(productData["product_name"]),
-       		NutriscoreGrade: utils.SafeString(productData["nutriscore_grade"]),
-        	EcoscoreGrade:   utils.SafeString(productData["ecoscore_grade"]),
-    }
+		NutriscoreGrade: utils.SafeString(productData["nutriscore_grade"]),
+		EcoscoreGrade:   utils.SafeString(productData["ecoscore_grade"]),
+	}
 
-    if product.ProductName == "" {
-	product.ProductName = "unknown"
-    }
-    if product.NutriscoreGrade == "" {
-        product.NutriscoreGrade = "unknown"
-    }
-    if product.EcoscoreGrade == "" {
-        product.EcoscoreGrade = "unknown"
-    }
+	if product.ProductName == "" {
+		product.ProductName = "unknown"
+	}
+	if product.NutriscoreGrade == "" {
+		product.NutriscoreGrade = "unknown"
+	}
+	if product.EcoscoreGrade == "" {
+		product.EcoscoreGrade = "unknown"
+	}
 
-return product, nil
+	nutrimentsData := productData["nutriments"].(map[string]interface{})
+	product.Nutriments = db.Nutriments{
+		EnergyKJ:      utils.SafeFloat64(nutrimentsData["energy-kj_100g"]),
+		EnergyKcal:    utils.SafeFloat64(nutrimentsData["energy-kcal_100g"]),
+		Fat:           utils.SafeFloat64(nutrimentsData["fat_100g"]),
+		SaturatedFat:  utils.SafeFloat64(nutrimentsData["saturated-fat_100g"]),
+		Carbohydrates: utils.SafeFloat64(nutrimentsData["carbohydrates_100g"]),
+		Sugars:        utils.SafeFloat64(nutrimentsData["sugars_100g"]),
+		Protein:       utils.SafeFloat64(nutrimentsData["proteins_100g"]),
+		Fiber:         utils.SafeFloat64(nutrimentsData["fiber_100g"]),
+		Salt:          utils.SafeFloat64(nutrimentsData["salt_100g"]),
+		Sodium:        utils.SafeFloat64(nutrimentsData["sodium_100g"]),
+	}
+
+	return product, nil
 }
-
-

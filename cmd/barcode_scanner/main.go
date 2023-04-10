@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -28,6 +27,13 @@ func main() {
 	database = connectToDatabase()
 	defer database.Close()
 
+	// Checks if tables exist and creates them if they don't
+	err := db.CreateSchema(database)
+	if err != nil {
+		log.Fatalf("Error creating database schema: %v\n", err)
+	}
+
+	// Define the routes for accessing the API
 	router := setupRouter()
 
 	port := os.Getenv("PORT")
@@ -55,12 +61,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Format to 13 digits
-	barcode = utils.ConvertTo13DigitNumber(barcode)	
-
-	if (barcode == "error"){	
-		handleError(w, http.StatusBadRequest, "Invalid barcode", nil)
-		return
-	}
+	barcode = utils.ConvertTo13DigitNumber(barcode)
 
 	// Create a context with a timeout of 5 seconds
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
@@ -71,36 +72,28 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 
 	// If the product is not found, fetch it from the Open Food Facts API
 	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			log.Printf("Product not found in local database: %s\n", barcode)
+		log.Printf("Product not found in local database: %s\n", barcode)
 
-			// Fetch the product from the Open Food Facts API
-			product, err = api.FetchProduct(ctx, barcode)
-			if err != nil {
-				handleError(w, http.StatusInternalServerError, fmt.Sprintf("Error fetching product from Open Food Facts API: %v", err), err)
-				return
-			}
-
-			// If the product is not found, return a 404 Not Found error
-			if product.ID == "" {
-				handleError(w, http.StatusNotFound, "Barcode not found", nil)
-				return
-			}
-
-			// Store the product in the database
-			err = db.StoreProduct(ctx, database, product)
-			if err != nil {
-				handleError(w, http.StatusInternalServerError, "Error storing product in local database", err)
-				return
-			}
-
-		} else {
-
-			// If the error is not sql.ErrNoRows, return an internal server error ( Other error than Not Found )
-			handleError(w, http.StatusInternalServerError, "Error fetching product from local database", err)
+		// Fetch the product from the Open Food Facts API
+		product, err = api.FetchProduct(ctx, barcode)
+		if err != nil {
+			handleError(w, http.StatusInternalServerError, fmt.Sprintf("Error fetching product from Open Food Facts API: %v", err), err)
 			return
-
 		}
+
+		// If the product is not found, return a 404 Not Found error
+		if product.ID == "" {
+			handleError(w, http.StatusNotFound, "Barcode not found", nil)
+			return
+		}
+
+		// Store the product in the database
+		err = db.StoreProduct(ctx, database, product)
+		if err != nil {
+			handleError(w, http.StatusInternalServerError, "Error storing product in local database", err)
+			return
+		}
+
 	} else {
 		fmt.Printf("Product found in local database: %s\n", barcode)
 	}
@@ -117,9 +110,7 @@ func handleError(w http.ResponseWriter, statusCode int, message string, err erro
 	}
 }
 
-
-
-
+// Create a connection to the database
 func connectToDatabase() *sql.DB {
 	dsn := "root:@tcp(localhost:3306)/barcodes?parseTime=true" //os.Getenv("MYSQL_DSN")
 	db, err := sql.Open("mysql", dsn)
@@ -129,6 +120,7 @@ func connectToDatabase() *sql.DB {
 	return db
 }
 
+// Define the routes for accessing the API
 func setupRouter() *chi.Mux {
 	r := chi.NewRouter()
 	r.Use(middleware.Logger)

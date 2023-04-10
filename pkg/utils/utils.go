@@ -28,3 +28,17 @@ func SafeString(value interface{}) string {
 	}
 	return ""
 }
+
+func SafeFloat64(value interface{}) float64 {
+	if value == nil {
+		return 0
+	}
+	switch v := value.(type) {
+	case float64:
+		return v
+	case int:
+		return float64(v)
+	default:
+		return 0
+	}
+}

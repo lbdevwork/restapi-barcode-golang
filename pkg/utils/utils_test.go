@@ -1,4 +1,4 @@
-package main
+package utils
 
 import (
 	"testing"
@@ -18,7 +18,7 @@ func TestConvertTo13DigitNumber(t *testing.T) {
 
 	for _, tc := range testCases {
 		t.Run("", func(t *testing.T) {
-			result := utils.ConvertTo13DigitNumber(tc.input)
+			result := ConvertTo13DigitNumber(tc.input)
 			if result != tc.output {
 				t.Errorf("convertTo13DigitNumber(%q) = %q; want %q", tc.input, result, tc.output)
 			}
