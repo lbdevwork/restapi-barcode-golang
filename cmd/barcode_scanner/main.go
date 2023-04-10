@@ -92,7 +92,7 @@ func setupRouter() *chi.Mux {
 	r.Use(middleware.Logger)
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/product/{barcode}", productHandler)
-		r.Get("/product/text/{barcode}", productHandlerText)
+		r.Get("/product/text/{lang}/{barcode}", productHandlerText)
 	})
 	return r
 }
@@ -158,9 +158,24 @@ func productHandlerText(w http.ResponseWriter, r *http.Request) {
 			handleError(w, http.StatusNotFound, "Barcode not found", nil)
 			return
 		}
-
-		fmt.Fprintf(w, "Product ID: %s\nProduct Name: %s\nNutriscore Grade: %s\nEcoscore Grade: %s\n",
-			product.ID, product.ProductName, product.NutriscoreGrade, product.EcoscoreGrade)
+		language := chi.URLParam(r, "lang")
+		if language == "en" {
+			fmt.Fprintf(w, "Barcode: %s\nProduct Name: %s\nNutriscore Grade: %s (From A to E)\nEcoscore Grade: %s (From A to E)\n\nPer 100g:\n - Energy: %f kJ (%f kcal)\n - Fat: %f g\n - Saturated Fat: %f g\n - Carbohydrates: %f g\n - Sugars: %f g\n - Protein: %f g\n - Fiber: %f g\n - Salt: %f g\n - Sodium: %f g",
+				product.ID, product.ProductName, product.NutriscoreGrade, product.EcoscoreGrade,
+				product.Nutriments.EnergyKJ, product.Nutriments.EnergyKcal,
+				product.Nutriments.Fat, product.Nutriments.SaturatedFat,
+				product.Nutriments.Carbohydrates, product.Nutriments.Sugars,
+				product.Nutriments.Protein, product.Nutriments.Fiber,
+				product.Nutriments.Salt, product.Nutriments.Sodium)
+		} else if language == "pt" {
+			fmt.Fprintf(w, "Código de barras: %s\nNome do Produto: %s\nClassificação Nutriscore: %s (De A a E)\nClassificação Ecoscore: %s (De A a E)\n\nPor 100g:\n - Energia: %f kJ (%f kcal)\n - Gordura: %f g\n - Gordura Saturada: %f g\n - Carboidratos: %f g\n - Açúcares: %f g\n - Proteínas: %f g\n - Fibras: %f g\n - Sal: %f g\n - Sódio: %f g",
+				product.ID, product.ProductName, product.NutriscoreGrade, product.EcoscoreGrade,
+				product.Nutriments.EnergyKJ, product.Nutriments.EnergyKcal,
+				product.Nutriments.Fat, product.Nutriments.SaturatedFat,
+				product.Nutriments.Carbohydrates, product.Nutriments.Sugars,
+				product.Nutriments.Protein, product.Nutriments.Fiber,
+				product.Nutriments.Salt, product.Nutriments.Sodium)
+		}
 	})
 }
 
