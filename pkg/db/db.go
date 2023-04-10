@@ -31,7 +31,7 @@ func FetchProduct(ctx context.Context, db *sql.DB, barcode string) (Product, err
 }
 
 func StoreProduct(ctx context.Context, db *sql.DB, product Product) error {
-	product.ID = utils.convertTo13DigitNumber(product.ID)
+	product.ID = utils.ConvertTo13DigitNumber(product.ID)
 	_, err := db.ExecContext(ctx, `INSERT IGNORE INTO products (id, product_name, nutriscore_grade, ecoscore_grade) VALUES (?, ?, ?, ?)`,
 		product.ID,
 		product.ProductName,

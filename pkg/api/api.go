@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"strings"
 
 	"github.com/lbdevwork/restapi-barcode-golang/pkg/db"
-	"github.com/lbdevwork/restapi-barcode-golang/utils"
+
+	"github.com/lbdevwork/restapi-barcode-golang/pkg/utils"
 )
 
 func FetchProduct(ctx context.Context, barcode string) (db.Product, error) {
@@ -45,9 +45,9 @@ func FetchProduct(ctx context.Context, barcode string) (db.Product, error) {
 	productData := products[0].(map[string]interface{})
     	product := db.Product{
         	ID:              productData["code"].(string),
-		ProductName:     utils.safeString(productData["product_name"]),
-       		NutriscoreGrade: utils.safeString(productData["nutriscore_grade"]),
-        	EcoscoreGrade:   utils.safeString(productData["ecoscore_grade"]),
+		ProductName:     utils.SafeString(productData["product_name"]),
+       		NutriscoreGrade: utils.SafeString(productData["nutriscore_grade"]),
+        	EcoscoreGrade:   utils.SafeString(productData["ecoscore_grade"]),
     }
 
     if product.ProductName == "" {

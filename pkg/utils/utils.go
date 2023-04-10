@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-func convertTo13DigitNumber(value string) string {
+func ConvertTo13DigitNumber(value string) string {
 	for len(value) < 13 {
 		value = "0" + value
 	}
@@ -22,7 +22,7 @@ func convertTo13DigitNumber(value string) string {
 	return "error"
 }
 
-func safeString(value interface{}) string {
+func SafeString(value interface{}) string {
 	if value != nil {
 		return value.(string)
 	}

@@ -11,7 +11,6 @@ import (
 	"os"
 	"strings"
 	"time"
-	"regexp"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
@@ -56,7 +55,7 @@ func productHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Format to 13 digits
-	barcode = utils.convertTo13DigitNumber(barcode)	
+	barcode = utils.ConvertTo13DigitNumber(barcode)	
 
 	if (barcode == "error"){	
 		handleError(w, http.StatusBadRequest, "Invalid barcode", nil)
