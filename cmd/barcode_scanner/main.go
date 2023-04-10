@@ -28,10 +28,7 @@ func main() {
 	defer database.Close()
 
 	// Checks if tables exist and creates them if they don't
-	err := db.CreateSchema(database)
-	if err != nil {
-		log.Fatalf("Error creating database schema: %v\n", err)
-	}
+	checkTables()
 
 	// Define the routes for accessing the API
 	router := setupRouter()
@@ -46,59 +43,31 @@ func main() {
 	log.Fatal(http.ListenAndServe(":"+port, router))
 }
 
-// Handler for requests to the /v1/product/{barcode} endpoint
 func productHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 
-	// Get the barcode from the URL parameter and remove the .json suffix
-	barcode := chi.URLParam(r, "barcode")
-	barcode = strings.TrimSuffix(barcode, ".json")
-
-	// Check if the barcode is valid
-	if barcode == "" {
-		handleError(w, http.StatusBadRequest, "Invalid barcode", nil)
-		return
-	}
-
-	// Format to 13 digits
-	barcode = utils.ConvertTo13DigitNumber(barcode)
-
-	// Create a context with a timeout of 5 seconds
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
-	defer cancel()
-
-	// Fetch the product from the database
-	product, err := db.FetchProduct(ctx, database, barcode)
-
-	// If the product is not found, fetch it from the Open Food Facts API
-	if err != nil {
-		log.Printf("Product not found in local database: %s\n", barcode)
-
-		// Fetch the product from the Open Food Facts API
-		product, err = api.FetchProduct(ctx, barcode)
-		if err != nil {
-			handleError(w, http.StatusInternalServerError, fmt.Sprintf("Error fetching product from Open Food Facts API: %v", err), err)
-			return
-		}
-
-		// If the product is not found, return a 404 Not Found error
+	fetchProduct(w, r, func(w http.ResponseWriter, product db.Product) {
 		if product.ID == "" {
 			handleError(w, http.StatusNotFound, "Barcode not found", nil)
 			return
 		}
 
-		// Store the product in the database
-		err = db.StoreProduct(ctx, database, product)
-		if err != nil {
-			handleError(w, http.StatusInternalServerError, "Error storing product in local database", err)
+		json.NewEncoder(w).Encode(product)
+	})
+}
+
+func productHandlerText(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+
+	fetchProduct(w, r, func(w http.ResponseWriter, product db.Product) {
+		if product.ID == "" {
+			handleError(w, http.StatusNotFound, "Barcode not found", nil)
 			return
 		}
 
-	} else {
-		fmt.Printf("Product found in local database: %s\n", barcode)
-	}
-
-	json.NewEncoder(w).Encode(product)
+		fmt.Fprintf(w, "Product ID: %s\nProduct Name: %s\nNutriscore Grade: %s\nEcoscore Grade: %s\n",
+			product.ID, product.ProductName, product.NutriscoreGrade, product.EcoscoreGrade)
+	})
 }
 
 // Handler function to return an error message as JSON
@@ -126,6 +95,53 @@ func setupRouter() *chi.Mux {
 	r.Use(middleware.Logger)
 	r.Route("/v1", func(r chi.Router) {
 		r.Get("/product/{barcode}", productHandler)
+		r.Get("/product/text/{barcode}.json", productHandlerText)
 	})
 	return r
+}
+
+// Checks if tables exist and creates them if they don't
+func checkTables() {
+	err := db.CreateSchema(database)
+	if err != nil {
+		log.Fatalf("Error creating database schema: %v\n", err)
+	}
+}
+
+func fetchProduct(w http.ResponseWriter, r *http.Request, handleResponse func(http.ResponseWriter, db.Product)) {
+	barcode := chi.URLParam(r, "barcode")
+	barcode = strings.TrimSuffix(barcode, ".json")
+
+	if barcode == "" {
+		return
+	}
+
+	barcode = utils.ConvertTo13DigitNumber(barcode)
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	product, err := db.FetchProduct(ctx, database, barcode)
+
+	if err != nil {
+		log.Printf("Product not found in local database: %s\n", barcode)
+
+		product, err = api.FetchProduct(ctx, barcode)
+		if err != nil {
+			return
+		}
+
+		if product.ID == "" {
+			return
+		}
+
+		err = db.StoreProduct(ctx, database, product)
+		if err != nil {
+			return
+		}
+	} else {
+		fmt.Printf("Product found in local database: %s\n", barcode)
+	}
+
+	handleResponse(w, product)
 }

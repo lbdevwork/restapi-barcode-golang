@@ -110,28 +110,28 @@ func CreateSchema(db *sql.DB) error {
 
 	productsSchema := `
 		CREATE TABLE IF NOT EXISTS products (
-			id TEXT PRIMARY KEY,
-			product_name TEXT,
-			nutriscore_grade TEXT,
-			ecoscore_grade TEXT
+			id VARCHAR(13) PRIMARY KEY,
+			product_name VARCHAR(255),
+			nutriscore_grade VARCHAR(255),
+			ecoscore_grade VARCHAR(255)
 		);
 	`
 
 	nutrimentsSchema := `
 		CREATE TABLE IF NOT EXISTS nutriments (
-			product_id TEXT,
-			energy_kj DECIMAL(8,2),
-			energy_kcal DECIMAL(8,2),
-			fat DECIMAL(8,2),
-			saturated_fat DECIMAL(8,2),
-			carbohydrates DECIMAL(8,2),
-			sugars DECIMAL(8,2),
-			protein DECIMAL(8,2),
-			fiber DECIMAL(8,2),
-			salt DECIMAL(8,2),
-			sodium DECIMAL(8,2),
-			PRIMARY KEY (product_id),
-			FOREIGN KEY (product_id) REFERENCES products(id)
+			id BIGINT AUTO_INCREMENT PRIMARY KEY,
+			product_id VARCHAR(13) NOT NULL,
+			energy_kj DECIMAL(10, 2),
+			energy_kcal DECIMAL(10, 2),
+			fat DECIMAL(10, 2),
+			saturated_fat DECIMAL(10, 2),
+			carbohydrates DECIMAL(10, 2),
+			sugars DECIMAL(10, 2),
+			protein DECIMAL(10, 2),
+			fiber DECIMAL(10, 2),
+			salt DECIMAL(10, 2),
+			sodium DECIMAL(10, 2),
+			FOREIGN KEY (product_id) REFERENCES products(id) ON DELETE CASCADE
 		);
 	`
 
