@@ -160,7 +160,8 @@ func productHandlerText(w http.ResponseWriter, r *http.Request) {
 		}
 		language := chi.URLParam(r, "lang")
 		if language == "en" {
-			fmt.Fprintf(w, "Barcode: %s\nProduct Name: %s\nNutriscore Grade: %s (From A to E)\nEcoscore Grade: %s (From A to E)\n\nPer 100g:\n - Energy: %f kJ (%f kcal)\n - Fat: %f g\n - Saturated Fat: %f g\n - Carbohydrates: %f g\n - Sugars: %f g\n - Protein: %f g\n - Fiber: %f g\n - Salt: %f g\n - Sodium: %f g",
+
+			fmt.Fprintf(w, "Barcode: %s\nProduct Name: %s\nNutriscore Grade: %s (From A to E)\nEcoscore Grade: %s (From A to E) (Representative Category of the Product's Carbon Footprint)\n\nPer 100g:\n - Energy: %f kJ (%f kcal)\n - Fat: %f g\n - Saturated Fat: %f g\n - Carbohydrates: %f g\n - Sugars: %f g\n - Protein: %f g\n - Fiber: %f g\n - Salt: %f g\n - Sodium: %f g",
 				product.ID, product.ProductName, product.NutriscoreGrade, product.EcoscoreGrade,
 				product.Nutriments.EnergyKJ, product.Nutriments.EnergyKcal,
 				product.Nutriments.Fat, product.Nutriments.SaturatedFat,
@@ -168,7 +169,8 @@ func productHandlerText(w http.ResponseWriter, r *http.Request) {
 				product.Nutriments.Protein, product.Nutriments.Fiber,
 				product.Nutriments.Salt, product.Nutriments.Sodium)
 		} else if language == "pt" {
-			fmt.Fprintf(w, "Código de barras: %s\nNome do Produto: %s\nClassificação Nutriscore: %s (De A a E)\nClassificação Ecoscore: %s (De A a E)\n\nPor 100g:\n - Energia: %f kJ (%f kcal)\n - Gordura: %f g\n - Gordura Saturada: %f g\n - Carboidratos: %f g\n - Açúcares: %f g\n - Proteínas: %f g\n - Fibras: %f g\n - Sal: %f g\n - Sódio: %f g",
+
+			fmt.Fprintf(w, "Código de barras: %s\nNome do Produto: %s\nClassificação Nutriscore: %s (De A a E)\nClassificação Ecoscore: %s (De A a E) (Categoria Representativa da Pegada de Carbono do Produto)\n\nPor 100g:\n - Energia: %f kJ (%f kcal)\n - Gordura: %f g\n - Gordura Saturada: %f g\n - Carboidratos: %f g\n - Açúcares: %f g\n - Proteínas: %f g\n - Fibras: %f g\n - Sal: %f g\n - Sódio: %f g",
 				product.ID, product.ProductName, product.NutriscoreGrade, product.EcoscoreGrade,
 				product.Nutriments.EnergyKJ, product.Nutriments.EnergyKcal,
 				product.Nutriments.Fat, product.Nutriments.SaturatedFat,
