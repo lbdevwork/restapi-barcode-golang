@@ -6,6 +6,10 @@ import (
 )
 
 func ConvertTo13DigitNumber(value string) string {
+	if value == "" {
+		return "error"
+	}
+
 	for len(value) < 13 {
 		value = "0" + value
 	}

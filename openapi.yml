@@ -1,44 +1,30 @@
 openapi: 3.0.0
 info:
-  title: Nutriscore and Carbon Footprint API
+  title: Barcode Product Information API
+  description: A RESTful API to fetch product information using barcodes.
   version: 1.0.0
 servers:
   - url: http://localhost:8080/v1
 paths:
   /product/{barcode}:
     get:
-      summary: Get product information by barcode
+      summary: Get product information in JSON format
       parameters:
-        - name: barcode
-          in: path
+        - in: path
+          name: barcode
           required: true
           schema:
             type: string
-            pattern: '^\d{13}$'
-          description: The product's 13-digit barcode (e.g., 737628064502)
+          description: The barcode of the product to be fetched
       responses:
         '200':
-          description: Successful operation
+          description: Product information found
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  barcode:
-                    type: string
-                    example: "0737628064502"
-                  name:
-                    type: string
-                    example: "Example Product"
-                  nutriscore:
-                    type: string
-                    example: "A"
-                  carbon_footprint:
-                    type: number
-                    format: float
-                    example: 10.5
-        '400':
-          description: Invalid barcode
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
           content:
             application/json:
               schema:
@@ -46,9 +32,25 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Invalid barcode"
-        '500':
-          description: Internal server error
+  /product/text/{barcode}.json:
+    get:
+      summary: Get product information in plain text format
+      parameters:
+        - in: path
+          name: barcode
+          required: true
+          schema:
+            type: string
+          description: The barcode of the product to be fetched
+      responses:
+        '200':
+          description: Product information found
+          content:
+            text/plain:
+              schema:
+                type: string
+        '404':
+          description: Product not found
           content:
             application/json:
               schema:
@@ -56,4 +58,55 @@ paths:
                 properties:
                   error:
                     type: string
-                    example: "Error fetching product from Open Food Facts API"
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The barcode of the product
+        product_name:
+          type: string
+          description: The name of the product
+        nutriscore_grade:
+          type: string
+          description: The Nutriscore grade of the product
+        ecoscore_grade:
+          type: string
+          description: The Ecoscore grade of the product
+        nutriments:
+          $ref: '#/components/schemas/Nutriments'
+    Nutriments:
+      type: object
+      properties:
+        energy_kj:
+          type: number
+          format: float
+        energy_kcal:
+          type: number
+          format: float
+        fat:
+          type: number
+          format: float
+        saturated_fat:
+          type: number
+          format: float
+        carbohydrates:
+          type: number
+          format: float
+        sugars:
+          type: number
+          format: float
+        protein:
+          type: number
+          format: float
+        fiber:
+          type: number
+          format: float
+        salt:
+          type: number
+          format: float
+        sodium:
+          type: number
+          format: float

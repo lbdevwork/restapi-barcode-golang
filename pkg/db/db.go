@@ -76,7 +76,9 @@ func FetchProduct(ctx context.Context, db *sql.DB, barcode string) (Product, err
 
 func StoreProduct(ctx context.Context, db *sql.DB, product Product) error {
 	product.ID = utils.ConvertTo13DigitNumber(product.ID)
-
+	if product.ID == "error" {
+		return fmt.Errorf("invalid barcode: %s", product.ID)
+	}
 	productInsert := `
 		INSERT IGNORE INTO products (id, product_name, nutriscore_grade, ecoscore_grade)
 		VALUES (?, ?, ?, ?);

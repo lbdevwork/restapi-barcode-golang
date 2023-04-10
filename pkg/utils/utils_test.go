@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -24,4 +25,5 @@ func TestConvertTo13DigitNumber(t *testing.T) {
 			}
 		})
 	}
+	fmt.Printf("TestConvertTo13DigitNumber: %v tests passed", len(testCases))
 }
