@@ -1,5 +1,3 @@
-# restapi-barcode-golang
-
 # RestAPI Barcode GoLang
 
 A RESTful API to fetch product information using barcodes, written in Go. The API returns information about products in JSON or plain text format, with support for English (en) and Portuguese (pt) languages.
@@ -15,20 +13,20 @@ A RESTful API to fetch product information using barcodes, written in Go. The AP
 
 1. Clone this repository:
 
-git clone https://github.com/lbdevwork/restapi-barcode-golang.git 
+        git clone https://github.com/lbdevwork/restapi-barcode-golang.git 
 
 2. Change into the project directory:
 
-cd restapi-barcode-golang
+        cd restapi-barcode-golang
 
 3. Install the required dependencies:
 
-go get -u ./...
+        go get -u ./...
 
 4. Build and run the application:
 
-go build -o app cmd/barcode_scanner/main.go
-./app
+        go build -o app cmd/barcode_scanner/main.go
+        ./app
 
 The API will be available at http://localhost:8080/v1.
 
