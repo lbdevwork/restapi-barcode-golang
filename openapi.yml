@@ -32,10 +32,17 @@ paths:
                 properties:
                   error:
                     type: string
-  /product/text/{barcode}.json:
+  /product/text/{lang}/{barcode}:
     get:
       summary: Get product information in plain text format
       parameters:
+        - in: path
+          name: lang
+          required: true
+          schema:
+            type: string
+            enum: ["en", "pt"]
+          description: The language code ("en" or "pt") for the plain text response
         - in: path
           name: barcode
           required: true
@@ -80,12 +87,6 @@ components:
     Nutriments:
       type: object
       properties:
-        energy_kj:
-          type: number
-          format: float
-        energy_kcal:
-          type: number
-          format: float
         fat:
           type: number
           format: float
