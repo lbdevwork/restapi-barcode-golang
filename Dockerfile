@@ -23,7 +23,7 @@ FROM scratch
 COPY --from=builder /app/main /main
 
 # Expose the port the app will run on
-EXPOSE 80
+EXPOSE 8080
 
 # Run the binary
 ENTRYPOINT ["/main"]
