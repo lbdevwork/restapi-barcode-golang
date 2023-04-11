@@ -41,7 +41,7 @@ func main() {
 	// Define the port to listen on
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "8080"
+		port = "80"
 	}
 
 	// Console output of API status
