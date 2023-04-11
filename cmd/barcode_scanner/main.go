@@ -1,3 +1,4 @@
+//access:access@tcp(34.89.68.153:3306)/barcodes
 package main
 
 import (
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"time"
 
 	"github.com/go-chi/chi"
@@ -26,10 +28,13 @@ var database *sql.DB
 func main() {
 
 	// Verify Env State
-	checkEnvFile()
-
+	//checkEnvFile()
+	var err2 error
 	// Create a connection to the database
-	database = connectToDatabase()
+	database, err2 = connectToDatabase()
+	if err2 != nil {
+		log.Fatalf("Failed to open database connection: %v\n", err2)
+	}
 	defer database.Close()
 
 	// Checks if tables exist and creates them if they don't
@@ -44,9 +49,14 @@ func main() {
 		port = "8080"
 	}
 
+	_, err := strconv.Atoi(port)
+	if err != nil {
+		log.Fatalf("Invalid port number: %v", err)
+	}
+
 	// Console output of API status
 	log.Printf("Listening on port %s...\n", port)
-	log.Fatal(http.ListenAndServe(":"+port, router))
+	log.Fatal(http.ListenAndServe("0.0.0.0:"+port, router))
 }
 
 // Verify that the .env file exists and can be acessed
@@ -65,7 +75,7 @@ func checkEnvFile() {
 	}
 }
 
-// Create a connection to the database
+// Create a connection to the database locally
 /*func connectToDatabase() *sql.DB {
 	dsn := os.Getenv("MYSQL_DSN")
 	if dsn == "" {
@@ -107,7 +117,7 @@ func fetchProduct(w http.ResponseWriter, r *http.Request, handleResponse func(ht
 		return
 	}
 
-	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(r.Context(), 50*time.Second)
 	defer cancel()
 
 	product, err := db.FetchProduct(ctx, database, barcode)
@@ -117,15 +127,18 @@ func fetchProduct(w http.ResponseWriter, r *http.Request, handleResponse func(ht
 
 		product, err = api.FetchProduct(ctx, barcode)
 		if err != nil {
+			log.Printf("Failed to fetch product from external API: %v\n", err) // Add this log
 			return
 		}
 
 		if product.ID == "" {
+			log.Printf("Product ID is empty after fetching from external API\n") // Add this log
 			return
 		}
 
 		err = db.StoreProduct(ctx, database, product)
 		if err != nil {
+			log.Printf("Failed to store product in local database: %v\n", err) // Add this log
 			return
 		}
 	} else {
@@ -190,28 +203,31 @@ func handleError(w http.ResponseWriter, statusCode int, message string, err erro
 	}
 }
 
-func connectToDatabase() *sql.DB {
-	dsn := os.Getenv("MYSQL_DSN")
-	if dsn == "" {
-		log.Fatal("MYSQL_DSN environment variable not set")
-	}
-
-	dbUser := os.Getenv("DB_USER")
-	dbPassword := os.Getenv("DB_PASSWORD")
-	dbName := os.Getenv("DB_NAME")
-	instanceConnectionName := os.Getenv("INSTANCE_CONNECTION_NAME")
-
-	if instanceConnectionName != "" {
-		socketDir, isSet := os.LookupEnv("DB_SOCKET_DIR")
-		if !isSet {
-			socketDir = "/cloudsql"
+func connectToDatabase() (*sql.DB, error) {
+	mustGetenv := func(k string) string {
+		v := os.Getenv(k)
+		if v == "" {
+			log.Fatalf("Fatal Error: %s environment variable not set.", k)
 		}
-		dsn = fmt.Sprintf("%s:%s@unix(/%s/%s)/%s", dbUser, dbPassword, socketDir, instanceConnectionName, dbName)
+		return v
 	}
 
-	db, err := sql.Open("mysql", dsn)
+	var (
+		dbUser           = mustGetenv("DB_USER")
+		dbPwd            = mustGetenv("DB_PASS")
+		dbName           = mustGetenv("DB_NAME")
+		instanceConnName = mustGetenv("INSTANCE_CONNECTION_NAME")
+	)
+
+	socketDir := "/cloudsql"
+
+	dbURI := fmt.Sprintf("%s:%s@unix(%s/%s)/%s?parseTime=true",
+		dbUser, dbPwd, socketDir, instanceConnName, dbName)
+
+	db, err := sql.Open("mysql", dbURI)
 	if err != nil {
-		log.Fatalf("Failed to open database connection: %v\n", err)
+		return nil, fmt.Errorf("sql.Open: %v", err)
 	}
-	return db
+
+	return db, nil
 }

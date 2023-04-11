@@ -3,6 +3,7 @@ package utils
 import (
 	"fmt"
 	"regexp"
+	"strconv"
 )
 
 func ConvertTo13DigitNumber(value string) string {
@@ -42,7 +43,15 @@ func SafeFloat64(value interface{}) float64 {
 		return v
 	case int:
 		return float64(v)
+	case string:
+		f, err := strconv.ParseFloat(v, 64)
+		if err != nil {
+			fmt.Printf("Error parsing float from string: %v\n", err)
+			return 0
+		}
+		return f
 	default:
+		fmt.Printf("Unknown type: %T\n", value)
 		return 0
 	}
 }

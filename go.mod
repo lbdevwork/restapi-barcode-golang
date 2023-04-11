@@ -8,3 +8,8 @@ require (
 	github.com/joho/godotenv v1.5.1
 	google.golang.org/api v0.117.0
 )
+
+require (
+	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
+	github.com/openfoodfacts/openfoodfacts-go v1.0.0 // indirect
+)

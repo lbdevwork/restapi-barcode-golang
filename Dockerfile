@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build the Go app (use the correct path for your main.go)
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o main ./cmd/barcode_scanner/main.go
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -o main ./cmd/barcode_scanner/main.go
 
 # Start a new stage from the scratch image
 FROM scratch
@@ -23,6 +23,7 @@ FROM scratch
 COPY --from=builder /app/main /main
 
 # Expose the port the app will run on
+ENV PORT 8080
 EXPOSE 8080
 
 # Run the binary
