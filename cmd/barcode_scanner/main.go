@@ -66,7 +66,7 @@ func checkEnvFile() {
 }
 
 // Create a connection to the database
-func connectToDatabase() *sql.DB {
+/*func connectToDatabase() *sql.DB {
 	dsn := os.Getenv("MYSQL_DSN")
 	if dsn == "" {
 		log.Fatal("MYSQL_DSN environment variable not set")
@@ -76,7 +76,7 @@ func connectToDatabase() *sql.DB {
 		log.Fatalf("Failed to open database connection: %v\n", err)
 	}
 	return db
-}
+}*/
 
 // Checks if tables exist and creates them if they don't
 func checkTables() {
@@ -188,4 +188,30 @@ func handleError(w http.ResponseWriter, statusCode int, message string, err erro
 	if err != nil {
 		log.Printf("%s: %v", message, err)
 	}
+}
+
+func connectToDatabase() *sql.DB {
+	dsn := os.Getenv("MYSQL_DSN")
+	if dsn == "" {
+		log.Fatal("MYSQL_DSN environment variable not set")
+	}
+
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+	dbName := os.Getenv("DB_NAME")
+	instanceConnectionName := os.Getenv("INSTANCE_CONNECTION_NAME")
+
+	if instanceConnectionName != "" {
+		socketDir, isSet := os.LookupEnv("DB_SOCKET_DIR")
+		if !isSet {
+			socketDir = "/cloudsql"
+		}
+		dsn = fmt.Sprintf("%s:%s@unix(/%s/%s)/%s", dbUser, dbPassword, socketDir, instanceConnectionName, dbName)
+	}
+
+	db, err := sql.Open("mysql", dsn)
+	if err != nil {
+		log.Fatalf("Failed to open database connection: %v\n", err)
+	}
+	return db
 }
