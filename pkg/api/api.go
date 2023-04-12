@@ -53,9 +53,14 @@ func FetchProduct(ctx context.Context, barcode string) (db.Product, error) {
 	if !ok {
 		return db.Product{}, fmt.Errorf("error extracting nutriments data")
 	}
-	fmt.Println("DEBUG: nutrimentsData:", nutrimentsData)
-	fmt.Println("DEBUG: fat_100g:", nutrimentsData["fat_100g"])
-	fmt.Println("DEBUG: SafeFloat64 fat_100g:", utils.SafeFloat64(nutrimentsData["fat_100g"]))
+
+	//Calculate energy-kj_100g and energy-kcal_100g from energy_100g if needed
+	if utils.SafeFloat64(nutrimentsData["energy-kj_100g"]) == 0 && utils.SafeFloat64(nutrimentsData["energy-kcal_100g"]) != 0 {
+		nutrimentsData["energy-kj_100g"] = utils.SafeFloat64(nutrimentsData["energy-kcal_100g"]) * 4.184
+	} else if utils.SafeFloat64(nutrimentsData["energy-kj_100g"]) != 0 && utils.SafeFloat64(nutrimentsData["energy-kcal_100g"]) == 0 {
+		nutrimentsData["energy-kcal_100g"] = utils.SafeFloat64(nutrimentsData["energy-kj_100g"]) / 4.184
+	}
+
 	product.Nutriments = db.Nutriments{
 		EnergyKJ:      utils.SafeFloat64(nutrimentsData["energy-kj_100g"]),
 		EnergyKcal:    utils.SafeFloat64(nutrimentsData["energy-kcal_100g"]),
