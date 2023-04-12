@@ -1,4 +1,3 @@
-//access:access@tcp(34.89.68.153:3306)/barcodes
 package main
 
 import (
@@ -27,8 +26,6 @@ var database *sql.DB
 
 func main() {
 
-	// Verify Env State
-	//checkEnvFile()
 	var err2 error
 	// Create a connection to the database
 	database, err2 = connectToDatabase()
@@ -75,19 +72,6 @@ func checkEnvFile() {
 	}
 }
 
-// Create a connection to the database locally
-/*func connectToDatabase() *sql.DB {
-	dsn := os.Getenv("MYSQL_DSN")
-	if dsn == "" {
-		log.Fatal("MYSQL_DSN environment variable not set")
-	}
-	db, err := sql.Open("mysql", dsn)
-	if err != nil {
-		log.Fatalf("Failed to open database connection: %v\n", err)
-	}
-	return db
-}*/
-
 // Checks if tables exist and creates them if they don't
 func checkTables() {
 	err := db.CreateSchema(database)
@@ -127,18 +111,18 @@ func fetchProduct(w http.ResponseWriter, r *http.Request, handleResponse func(ht
 
 		product, err = api.FetchProduct(ctx, barcode)
 		if err != nil {
-			log.Printf("Failed to fetch product from external API: %v\n", err) // Add this log
+			log.Printf("Failed to fetch product from external API: %v\n", err)
 			return
 		}
 
 		if product.ID == "" {
-			log.Printf("Product ID is empty after fetching from external API\n") // Add this log
+			log.Printf("Product ID is empty after fetching from external API\n")
 			return
 		}
 
 		err = db.StoreProduct(ctx, database, product)
 		if err != nil {
-			log.Printf("Failed to store product in local database: %v\n", err) // Add this log
+			log.Printf("Failed to store product in local database: %v\n", err)
 			return
 		}
 	} else {

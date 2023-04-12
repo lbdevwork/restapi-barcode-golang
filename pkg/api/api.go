@@ -101,9 +101,6 @@ func fetchProductDataJson(ctx context.Context, httpClient *http.Client, barcode 
 		return nil, fmt.Errorf("error unmarshalling the JSON data: %s", err)
 	}
 
-	// Add a debug print statement
-	fmt.Printf("DEBUG: Response data: %#v\n", data)
-
 	products, ok := data["products"].([]interface{})
 	if !ok || len(products) == 0 {
 		return nil, fmt.Errorf("unable to find the products key in the response data or products array is empty")
