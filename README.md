@@ -41,5 +41,10 @@ Fetch product information in JSON format
 GET /product/text/lang/{barcode}
 Fetch product information in plain text format, with support for "en" (English) and "pt" (Portuguese) languages. Replace {barcode} with the product's barcode.
 
+## Production
+Google Cloud Run Deployment on branch : google-run-microservice
+
 ## License
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+
